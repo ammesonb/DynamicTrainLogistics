@@ -6,19 +6,57 @@ on:
   pull_request:
 
 jobs:
-  ci:
+  format-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install clang-format 18
         run: |
           sudo apt-get update
           sudo apt-get install -y clang-format-18
           sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-18 100
+      - run: make format-check
 
-      - name: Format check
-        run: make format-check
-
-      - name: Build and run tests
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run domain tests
+        working-directory: Tests
         run: make test
+
+  headers-standalone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile each public domain header on its own
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail=0
+          for h in Source/DynamicTrainLogistics/Public/Domain/*.h; do
+            echo "== $h"
+            clang++ -std=c++17 -Wall -Wextra -Wpedantic -fsyntax-only \
+              -ISource/DynamicTrainLogistics/Public \
+              -xc++ -include "$h" -c /dev/null || fail=1
+          done
+          exit $fail
+
+  clang-tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy
+      - name: Lint domain headers and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            Tests/src/quantity_test.cpp
+            Tests/src/domain_smoke_test.cpp
+          )
+          clang-tidy "${files[@]}" -- \
+            -std=c++17 \
+            -ISource/DynamicTrainLogistics/Public \
+            -ITests/vendor
