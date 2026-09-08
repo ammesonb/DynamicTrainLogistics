@@ -1,0 +1,7 @@
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+Tests/build/
+*.VC.db
+.DS_Store
