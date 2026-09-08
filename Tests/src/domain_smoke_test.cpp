@@ -70,3 +70,39 @@ TEST_CASE("WorldState default-constructs and accepts inserts") {
     REQUIRE(w.drainTrips.size() == 1);
     REQUIRE(w.networkNames.at(NetworkId{1}) == "default");
 }
+
+TEST_CASE("isAvailable: parked, unassigned, not stuck") {
+    WorldState w;
+    TrainId    t{7};
+    Train      base;
+    base.id = t;
+
+    SECTION("unknown train is not available") {
+        REQUIRE_FALSE(isAvailable(w, t));
+    }
+
+    SECTION("in flight (no depot) is not available") {
+        w.trains[t] = base;
+        REQUIRE_FALSE(isAvailable(w, t));
+    }
+
+    SECTION("parked and idle is available") {
+        base.atDepot = StationId{2};
+        w.trains[t]  = base;
+        REQUIRE(isAvailable(w, t));
+    }
+
+    SECTION("parked but assigned to an order is not available") {
+        base.atDepot = StationId{2};
+        base.order   = OrderId{10};
+        w.trains[t]  = base;
+        REQUIRE_FALSE(isAvailable(w, t));
+    }
+
+    SECTION("stuck train is not available even when parked and idle") {
+        base.atDepot = StationId{2};
+        w.trains[t]  = base;
+        w.stuckTrains.insert(t);
+        REQUIRE_FALSE(isAvailable(w, t));
+    }
+}
