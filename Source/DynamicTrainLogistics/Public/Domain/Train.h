@@ -1,19 +1,17 @@
 #pragma once
 
-#include <optional>
-#include <string>
-#include <vector>
 #include "Car.h"
 #include "Ids.h"
+#include <vector>
 
 namespace dtl {
 
 struct Train {
-    TrainId                  id;
-    std::string              network;
-    std::vector<Car>         cars;         // position is the bay index it meets
-    std::optional<StationId> atDepot;      // set means available
-    std::optional<OrderId>   order;
+    TrainId          id;
+    NetworkId        network;
+    std::vector<Car> cars;      // position is the bay index it meets
+    StationId        atDepot;   // valid() == available at a depot
+    OrderId          order;     // valid() == on a delivery
 };
 
-}  // namespace dtl
+}   // namespace dtl

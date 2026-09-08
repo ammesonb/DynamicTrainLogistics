@@ -1,16 +1,15 @@
 #pragma once
 
-#include <optional>
 #include "Ids.h"
 #include "Quantity.h"
 
 namespace dtl {
 
 struct Car {
-    bool                  isFluid  = false;
-    std::optional<ItemId> item;
-    Quantity              amount;
-    Quantity              capacity;
+    bool     isFluid = false;
+    ItemId   item;   // valid() == carrying something
+    Quantity amount;
+    Quantity capacity;
 };
 
-}  // namespace dtl
+}   // namespace dtl

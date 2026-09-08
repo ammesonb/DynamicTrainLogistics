@@ -255,7 +255,7 @@ providerIndex:  map<ItemDescriptor, BayRef[]>
 requesterIndex: map<ItemDescriptor, BayRef[]>
 noProviderFor:  set<ItemDescriptor>       # negative cache
 problems:       Problem[]
-residueTrains:  set<TrainId>              # residue with no outlet; membership is the exclusion
+stuckTrains:    set<TrainId>              # residue with no outlet found; excluded from matching. "has residue" itself is derived from Train.cars.
 ```
 
 Only player-provided configuration persists, since all world-derivable state can be detected on load again.
@@ -419,8 +419,9 @@ More importantly the inbound-train count decrements on the docking hook, because
 **Dismantled bays** may be encountered during either request or provider checks.
 On encountering, their owning station configuration is fully reloaded.
 
-**Trains with residue** are held in a set, so an eligibility check is a single lookup and the set membership *is* the exclusion.
-It must be rebuilt on load from car inventories for trains at a depot station, and entries clear when a requester or drain station empties the train.
+**Stuck trains** are trains with residue for which no drain outlet was found. These are held in `stuckTrains`, so an eligibility check is a single lookup.
+"Has residue" itself is derived from `Train.cars`, since matching prefers a residue-carrying train when the residue item matches the order (existing contents count as partial fulfilment).
+The set must be rebuilt on load from car inventories for trains at a depot station, and entries clear when a requester or drain station empties the train.
 
 ### Problem lifetime
 
@@ -518,7 +519,7 @@ Unlike residue, contamination is unrecoverable, since the items are now on the w
 **A residue-carrying train is eligible for an order only if** the cars at the needed indices are empty, or the needed item is the residue item AT that index.
 
 Residue with no outlet parks the train and is surfaced in Problems on that depot, with the item named.
-The train joins `residueTrains`, which only suppresses re-running the drain check.
+The train joins `stuckTrains`, which excludes it from matching and suppresses re-running the drain check.
 A later request or a drain controller being placed resolves it with no further action required by the player.
 
 ### Depot selection
@@ -562,7 +563,7 @@ Cybersyn does this and it SOMETIMES beats sending a fresh train, but can also be
 
 | Mod | Status | Why |
 |---|---|---|
-| **Circuitry** | **Required** | Binding is a wire to the station, so there is no controller without it. Also supplies the Notificator, signal gating, and combine-inventories. |
+| **Circuitry** | **Required** | Binding is a wire to the station, so there is no controller without it. Also supplies the Notificator, signal gating, and combine-inventories. Ficsit.app mod reference is `FicsitWiremod`; "Circuitry" is the display/brand name. `.uplugin` and `.Build.cs` use `FicsitWiremod`. |
 | **Dynamic Train Routes** | Recommended | Path override with congestion penalties. Touches routing, never stop selection. |
 | **DynamicTimeTable** | **Conflict** | A second authority on the timetable. |
 
@@ -767,3 +768,4 @@ Test before committing design weight to any of these.
 - **Whether valves can be controlled via circuit network.** Non-blocking, enables partial load of fluids.
 - **Fluid platform and car capacities.** Needed for defaults, not for matching.
 - **Whether a Circuitry connection survives blueprinting.** Not blocking, a workflow bonus.
+- **The C++ module name inside the `FicsitWiremod` plugin.** Convention says module matches plugin name; the plan and community consistently use "Circuitry", which may be the internal module or just the brand. `.Build.cs` currently references `FicsitWiremod`; confirm by inspecting the shipped `.uplugin` on Windows.
