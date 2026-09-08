@@ -1,52 +1,45 @@
 #pragma once
 
-#include <string>
-#include <vector>
 #include "BayState.h"
 #include "Car.h"
 #include "Ids.h"
 #include "Quantity.h"
+#include <string>
+#include <vector>
 
 namespace dtl {
 
 // Adapter contracts between the UE-facing layer and the pure domain.
-// UE adapter implements these against FactoryGame/Circuitry APIs.
-// Tests implement them with fakes.
+// UE adapter implements these against FactoryGame/Circuitry; tests use fakes.
 
 class IItemCatalog {
 public:
-    virtual ~IItemCatalog() = default;
+    virtual ~IItemCatalog()                       = default;
     virtual std::string displayName(ItemId) const = 0;
-    virtual bool        isFluid(ItemId)     const = 0;
-    virtual Quantity    stackSize(ItemId)   const = 0;   // 1 for fluids
+    virtual bool        isFluid(ItemId) const     = 0;
+    virtual Quantity    stackSize(ItemId) const   = 0;   // 1 for fluids
 };
 
 class IWorldSource {
 public:
     virtual ~IWorldSource() = default;
 
-    // Read the current bay layout for a bound station via the platform chain.
     virtual std::vector<BayState> walkStation(StationId) = 0;
+    virtual std::vector<Car>      readTrainCars(TrainId) = 0;
+    virtual std::vector<TrainId>  allTrains()            = 0;
 
-    // Read car layout + current contents for one train.
-    virtual std::vector<Car> readTrainCars(TrainId) = 0;
-
-    // Every train on the world; used for load-time reconciliation and residue scan.
-    virtual std::vector<TrainId> allTrains() = 0;
-
-    // Reconcile inbound-train and depot-occupancy counters from live world state
-    // (survives save mid-dock).
+    // Reconcile counters from live world state (survives save mid-dock).
     virtual int inboundCountFor(StationId)  = 0;
     virtual int occupiedCountFor(StationId) = 0;
 };
 
-// Filter direction on a single stop. Empty allow-lists don't collapse into
-// "block" — the adapter must translate Block to UFGNoneDescriptor explicitly.
+// Explicit filter mode. Dispatch only ever emits Block or Items; AllowAll
+// exists to round-trip legacy imports where a stop had no filter.
 enum class FilterMode : uint8_t { AllowAll, Block, Items };
 
 struct DirectionFilter {
-    FilterMode           mode = FilterMode::Block;
-    std::vector<ItemId>  items;
+    FilterMode          mode = FilterMode::Block;
+    std::vector<ItemId> items;
 };
 
 struct Stop {
@@ -61,18 +54,17 @@ class IScheduleSink {
 public:
     virtual ~IScheduleSink() = default;
 
-    // Overwrites the timetable. Adapter must bracket its own SetStops call
-    // against dTT re-entry.
+    // Overwrites the timetable. Adapter brackets against dTT re-entry and
+    // translates Block into UFGNoneDescriptor entries.
     virtual bool writeSchedule(TrainId, const std::vector<Stop>& stops) = 0;
 };
 
-// Timetable parsing feed. One entry per stop in original order, per train.
-// Used by import; dispatch is the only writer of stops in normal operation.
+// Timetable read side, for import only.
 struct ImportedStopFilter {
     std::vector<ItemId> loadItems;
     std::vector<ItemId> unloadItems;
-    bool loadIsNone   = false;   // true when the entry is UFGNoneDescriptor
-    bool unloadIsNone = false;
+    bool                loadIsNone   = false;
+    bool                unloadIsNone = false;
 };
 
 struct ImportedStop {
@@ -82,8 +74,35 @@ struct ImportedStop {
 
 class IImportSource {
 public:
-    virtual ~IImportSource() = default;
+    virtual ~IImportSource()                                = default;
     virtual std::vector<ImportedStop> readSchedule(TrainId) = 0;
 };
 
-}  // namespace dtl
+// Output side: domain -> adapter -> Circuitry wires.
+struct DesiredBayAmount {
+    int      bayIndex = 0;
+    ItemId   item;
+    Quantity amount;
+};
+
+struct StationOutputs {
+    std::vector<DesiredBayAmount> desired;   // load bays for the next outbound order
+    bool                          ready = false;
+    std::string                   status;
+};
+
+struct DepotOutputs {
+    bool        hasStuckTrain = false;
+    ItemId      stuckItem;   // valid if hasStuckTrain
+    TrainId     stuckTrain;
+    std::string status;
+};
+
+class IOutputSink {
+public:
+    virtual ~IOutputSink()                                             = default;
+    virtual void writeStationOutputs(StationId, const StationOutputs&) = 0;
+    virtual void writeDepotOutputs(StationId, const DepotOutputs&)     = 0;
+};
+
+}   // namespace dtl
