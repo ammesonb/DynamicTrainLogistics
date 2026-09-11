@@ -15,8 +15,9 @@ enum class OrderStage : uint8_t {
     Done,
 };
 
-// Delivery order (provider -> requester -> depot).
-// Drain trips use DrainTrip; they have no provider and no wanted/delivered.
+// Delivery assignment (provider -> requester -> depot).
+// The future save adapter must preserve assignment intent (see docs/TRAIN_STATES.md).
+// Drain trips do not have requesters, so need no provider and are handled by DrainTrip instead.
 struct Order {
     OrderId          id;
     ItemId           item;

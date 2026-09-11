@@ -5,7 +5,7 @@
 namespace dtl {
 
 // Fixed-point at 1/100. Solids use whole units, fluids use hundredths.
-// Divisions round toward zero; wholeUnits/hundredths use floor semantics so
+// Divisions round toward zero, while wholeUnits/hundredths use floor semantics so
 // negative values display cleanly (e.g. -1.50 = whole:-2 hund:50 -> "-1.50" formatting).
 class Quantity {
 public:

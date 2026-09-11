@@ -3,6 +3,7 @@
 #include "Ids.h"
 #include <cstdint>
 #include <functional>
+#include <vector>
 
 namespace dtl {
 
@@ -32,12 +33,19 @@ struct ProblemKey {
     }
 };
 
+struct ProblemLocation {
+    StationId        station;
+    std::vector<int> indices;
+};
+
 struct Problem {
     Severity    severity = Severity::Info;
     ProblemCode code     = ProblemCode::Unbound;
     ItemId      item;
     StationId   station;
     TrainId     train;
+    // Evidence for this station/item problem. Merge locations when deduplicating.
+    std::vector<ProblemLocation> locations;
 
     ProblemKey key() const { return {code, station.value, item.value, train.value}; }
 };
