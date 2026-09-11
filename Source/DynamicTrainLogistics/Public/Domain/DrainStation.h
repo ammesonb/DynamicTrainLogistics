@@ -6,7 +6,8 @@
 
 namespace dtl {
 
-// Read-only bay list; never enters provider/requester indices.
+// Drain stations process leftover cargo, so do not request specific items
+// and therefore do not need to be configured by players.
 struct DrainStation {
     StationId             station;
     NetworkId             network;

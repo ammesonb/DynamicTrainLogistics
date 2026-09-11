@@ -4,8 +4,7 @@
 
 namespace dtl {
 
-// A 2-stop schedule (drain-station -> depot) that clears residue.
-// One in flight per train; keyed by TrainId in WorldState.
+// A simple 2-stop schedule (drain-station -> depot) that clears residue.
 struct DrainTrip {
     enum class Stage : uint8_t { ToDrain, Draining, ToDepot, Done };
 

@@ -5,7 +5,7 @@
 
 namespace dtl {
 
-// Opaque handle. value==0 is the null sentinel; adapter maps <-> UE pointers/UClass*.
+// Opaque handle. value==0 is the null sentinel, adapter maps <-> UE pointers/UClass*.
 template <typename Tag>
 struct Handle {
     uint64_t value = 0;
