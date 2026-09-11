@@ -14,9 +14,9 @@ struct MatchCandidate {
     StationId        requester;
     std::vector<int> indices;   // sorted in ascending order, includes only positions reached by this train
     TrainId          train;
-    Quantity         wanted;                // full desired capacity for this item across selected cars, including residue
-    bool             usesResidue = false;   // already has matching cargo at a selected index, not cargo merely carried along
-    size_t           trainLength = 0;       // count of all vehicles, including the docking engine (not size in meters)
+    Quantity         wanted;      // full desired capacity for this item across selected cars, including residue
+    bool   usesResidue = false;   // already has matching cargo at a selected index, not cargo merely carried along
+    size_t trainLength = 0;       // count of all vehicles, including the docking engine (not size in meters)
 };
 
 // Best safe proposal for one item: uses residue, then more bays, then shorter

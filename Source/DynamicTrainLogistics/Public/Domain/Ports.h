@@ -28,7 +28,7 @@ public:
     // Full train makeup, ordered from the intended docking locomotive.
     // Never strip engines since they take up platform space too.
     virtual std::vector<TrainVehicle> readTrainMakeup(TrainId) = 0;
-    virtual std::vector<TrainId>      allTrains()               = 0;
+    virtual std::vector<TrainId>      allTrains()              = 0;
 
     // Reconcile counters from live world state (survives save mid-dock).
     virtual int inboundCountFor(StationId)  = 0;

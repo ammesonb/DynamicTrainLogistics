@@ -16,7 +16,7 @@ struct Station {
     int maxInbound = 1;
     int inbound    = 0;   // destined for or docked here
 
-    bool bound         = true;    // false once the underlying station is gone
+    bool bound = true;   // false once the underlying station is gone
 };
 
 }   // namespace dtl
