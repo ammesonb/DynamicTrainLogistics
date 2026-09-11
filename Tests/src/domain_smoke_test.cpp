@@ -52,7 +52,7 @@ TEST_CASE("Problem::key derives from optional-shaped handles") {
 
 TEST_CASE("WorldState default-constructs and accepts inserts") {
     WorldState w;
-    w.stations[StationId{1}]     = Station{StationId{1}, "A", NetworkId{1}, {}, 1, 0, false, true};
+    w.stations[StationId{1}]     = Station{StationId{1}, "A", NetworkId{1}};
     w.depots[StationId{2}]       = Depot{StationId{2}, NetworkId{1}, 4, 0, 0};
     w.networkNames[NetworkId{1}] = "default";
 
