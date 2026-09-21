@@ -15,15 +15,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang-format-18
           sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-18 100
-      - run: make format-check
+      - name: Configure
+        run: cmake -S . -B build
+      - name: Check formatting
+        run: cmake --build build --target format-check
 
   unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build and run domain tests
-        working-directory: Tests
-        run: make test
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build --parallel
+          ctest --test-dir build --output-on-failure
 
   headers-standalone:
     runs-on: ubuntu-latest
